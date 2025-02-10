@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import Navbar from "../Navbar";
+import axios from "axios";
 import "./index.css";
 import { useNavigate } from "react-router-dom";
 
@@ -30,34 +31,39 @@ const navigate=useNavigate();
     });
   };
 
-  const handleSubmitButton = (e) => {
-      const jobPost = {
-        company,
-        position,
-        salary,
-        experience,
-        role,
-        location,
-        logo
-      };
+  const handleSubmitButton = async (e) => {
     e.preventDefault();
-    if (company === "") {
-      window.alert("Enter name");
-    } else if (position === "") {
-      window.alert("Enter position");
-    } else if (experience === "") {
-      window.alert("Enter Experience");
-    } else if (salary === "") window.alert("Enter Salary");
-    else {
-      let savedItem = [];
-      if (localStorage.getItem("item")) {
-        savedItem = JSON.parse(localStorage.getItem("item"));
+    
+    // Log the data being sent
+    const jobPost = {
+      company_name: company,
+      job_location: location,
+      company_logo: "logo_image",
+      position: position,
+      description: role,
+      experience: experience,
+      salary: salary
+    };
+
+    console.log('Sending job data:', jobPost); // Debug log
+
+    try {
+      const response = await axios.post("http://localhost:5000/createJob/", jobPost, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Response:', response); // Debug log
+      if (response.status === 200 || response.status === 201) {
+        window.alert("Job posted successfully!");
+        navigate('/jobs');
       }
-      localStorage.setItem("item", JSON.stringify([...savedItem, {jobPost}]));
-      window.alert("Form Submitted Successfully");
-      navigate("/Jobs");
+    } catch (error) {
+      console.error("Full error details:", error.response || error); // Detailed error log
+      window.alert(`Failed to post job: ${error.response?.data?.message || error.message}`);
     }
   };
+
   return (
     <div>
       <Navbar />
