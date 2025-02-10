@@ -52,8 +52,10 @@ form {
   background: #aaaaaa;
   padding: 2.5rem 0.625rem;
   border-radius: 0.25rem;
-  width: 76%;
+  min-width: 76%;  /* changed from width: 100% to min-width: 76% */
   margin: 0 auto;
+  box-sizing: border-box;
+  display: inline-block;  /* added to allow form to expand with content */
 }
 
 @media (min-width: 1000px) {
@@ -95,11 +97,14 @@ form {
 
 .description-input {
   min-height: 150px;
+  min-width: 100%;  
+  width: auto;    
   font-family: inherit;
   line-height: 1.5;
   resize: both;  
   white-space: pre-line;
   padding: 0.8rem;
+  box-sizing: border-box; 
 }
 
 .description-input::placeholder {
