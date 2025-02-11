@@ -52,10 +52,10 @@
   border-radius: 30px;
   padding: 0 15px;
   width: 100%;
-  max-width: 700px;
+  max-width: 900px;  /* increased from 700px */
   height: 50px;
   position: relative;
-  flex: 1;
+  flex: 1.5;  /* increased from 1 to give more space to input */
 }
 
 .search-icon {
@@ -81,13 +81,14 @@
 .search-button {
   background: #000000;
   border: none;
-  padding: 0 30px;
+  padding: 0 20px;  /* decreased from 30px */
   border-radius: 30px;
   color: rgb(255, 255, 255);
   cursor: pointer;
   transition: 0.3s ease;
   white-space: nowrap;
   height: 50px;
+  flex: 0.2;  /* added to control button width */
 }
 
 .search-button:hover {
