@@ -1,7 +1,3 @@
-body {
-  overflow: hidden;
-}
-
 .signup-page {
   min-height: 100vh;
   display: flex;

@@ -3,13 +3,19 @@ import Navbar from "../Navbar";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import FloatingLogos from "../FloatingLogos";
 import "./index.css";
 
 const Home = () => {
+
+  const handleSignup = () => {
+    console.log("Sign up");
+  }
   return (
     <div className="home-container">
       <Navbar />
       <div className="banner-img">
+        <FloatingLogos />
         <div className="title">
           <h3>
             Modernizing the job <br />

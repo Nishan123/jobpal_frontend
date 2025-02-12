@@ -45,7 +45,6 @@ const navigate=useNavigate();
       salary: salary
     };
 
-    console.log('Sending job data:', jobPost); // Debug log
 
     try {
       const response = await axios.post("http://localhost:5000/createJob/", jobPost, {

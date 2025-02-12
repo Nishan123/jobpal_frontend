@@ -1,0 +1,58 @@
+.floating-logos {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.floating-logo {
+  position: absolute;
+  opacity: 0.15;
+  color: #000;
+  z-index: 1;
+  font-size: 30px; /* Set uniform size for all icons */
+}
+
+@keyframes float-1 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(10px, -10px) rotate(120deg); }
+  66% { transform: translate(-10px, 5px) rotate(240deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+
+@keyframes float-2 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-12px, -12px) rotate(180deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+
+@keyframes float-3 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(8px, 8px) rotate(-120deg); }
+  66% { transform: translate(-8px, -12px) rotate(-240deg); }
+  100% { transform: translate(0, 0) rotate(-360deg); }
+}
+
+/* Safe zones to avoid text collision */
+.float-1 { top: 5%; left: 5%; animation: float-1 12s infinite ease-in-out; }
+.float-2 { top: 15%; left: 85%; animation: float-2 15s infinite ease-in-out; }
+.float-3 { top: 85%; left: 10%; animation: float-3 18s infinite ease-in-out; }
+.float-4 { top: 80%; left: 85%; animation: float-1 20s infinite ease-in-out; }
+.float-5 { top: 8%; left: 70%; animation: float-2 14s infinite ease-in-out; }
+.float-6 { top: 85%; left: 25%; animation: float-3 16s infinite ease-in-out; }
+.float-7 { top: 75%; left: 75%; animation: float-1 19s infinite ease-in-out; }
+.float-8 { top: 12%; left: 30%; animation: float-2 13s infinite ease-in-out; }
+
+/* Bottom row icons */
+.float-9 { top: 88%; left: 45%; animation: float-3 17s infinite ease-in-out; }
+.float-10 { top: 82%; left: 60%; animation: float-1 21s infinite ease-in-out; }
+
+/* Top row icons */
+.float-11 { top: 8%; left: 50%; animation: float-2 14s infinite ease-in-out; }
+.float-12 { top: 15%; left: 15%; animation: float-3 16s infinite ease-in-out; }
+
+/* Side areas */
+.float-13 { top: 45%; left: 92%; animation: float-1 18s infinite ease-in-out; }
+.float-14 { top: 52%; left: 5%; animation: float-2 15s infinite ease-in-out; }
+.float-15 { top: 35%; left: 88%; animation: float-3 17s infinite ease-in-out; }
+.float-16 { top: 42%; left: 8%; animation: float-1 19s infinite ease-in-out; }

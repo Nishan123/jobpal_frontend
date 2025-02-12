@@ -1,7 +1,4 @@
-body {
-    overflow: hidden;
-  }
-  
+ 
   .login-page {
     min-height: 100vh;
     display: flex;
