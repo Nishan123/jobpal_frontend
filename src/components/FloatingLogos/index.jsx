@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faCode, 
@@ -21,7 +21,7 @@ import {
 import './FloatingLogos.css';
 
 const FloatingLogos = () => {
-  const logos = [
+  const logos = useMemo(() => [
     { icon: faCode },
     { icon: faBriefcase },
     { icon: faStethoscope },
@@ -42,7 +42,7 @@ const FloatingLogos = () => {
     ...logo,
     class: `float-${index + 1}`,
     delay: Math.random() * -15
-  }));
+  })), []);
 
   return (
     <div className="floating-logos">
@@ -58,4 +58,4 @@ const FloatingLogos = () => {
   );
 };
 
-export default FloatingLogos;
+export default React.memo(FloatingLogos);

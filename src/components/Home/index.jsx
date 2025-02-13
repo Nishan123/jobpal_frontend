@@ -1,12 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "../Navbar";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import FloatingLogos from "../FloatingLogos";
 import "./index.css";
 
 const Home = () => {
+  const [searchText, setSearchText] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (searchText.trim()) {
+      navigate(`/jobs?search=${encodeURIComponent(searchText.trim())}`);
+    } else {
+      navigate('/jobs');
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   const handleSignup = () => {
     console.log("Sign up");
@@ -33,9 +49,16 @@ const Home = () => {
         <div className="search-container">
           <div className="search-wrapper">
             <FontAwesomeIcon icon={faSearch} className="search-icon" />
-            <input type="text" placeholder="Search for jobs..." className="search-input" />
+            <input 
+              type="text" 
+              placeholder="Search for jobs..." 
+              className="search-input" 
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyPress={handleKeyPress}
+            />
           </div>
-          <button className="search-button">Search</button>
+          <button className="search-button" onClick={handleSearch}>Search</button>
         </div>
       </div>
     </div>

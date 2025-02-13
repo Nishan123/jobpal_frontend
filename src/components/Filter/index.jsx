@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { FiSearch } from "react-icons/fi";
+import { useSearchParams } from "react-router-dom";
 import "./index.css";
+
 const experience = [
   { min: 0, max: 1 },
   { min: 2, max: 3 },
@@ -14,6 +16,7 @@ const Filter = ({
   handleExperienceFilter,
   searchEvent,
 }) => {
+  const [searchParams] = useSearchParams();
   const [checkedState, setCheckedState] = useState(
     new Array(experience.length).fill(false)
   );
@@ -46,6 +49,7 @@ const Filter = ({
                 type="text"
                 className="search-term"
                 placeholder="Search Here"
+                defaultValue={searchParams.get('search') || ""}
                 onChange={searchEvent}
               />
             </div>

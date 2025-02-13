@@ -13,52 +13,44 @@ const PostJob = () => {
   const [experience, setExperience] = useState("");
   const [role, setRole] = useState("");
   const [location, setLocation] = useState("");
+  const current_uid="user_id";
 
 const navigate=useNavigate();
-  const getBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onabort = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
-  };
+
   const handleImg = (e) => {
     const file = e.target.files[0];
-    getBase64(file).then((base64) => {
-      localStorage["logo"] = base64;
-      setLogo(base64);
-    });
+    setLogo(file);
   };
 
   const handleSubmitButton = async (e) => {
     e.preventDefault();
     
-    // Log the data being sent
-    const jobPost = {
-      company_name: company,
-      job_location: location,
-      company_logo: "logo_image",
-      position: position,
-      description: role,
-      experience: experience,
-      salary: salary
-    };
-
+    const formData = new FormData();
+    formData.append('posted_by', current_uid);
+    formData.append('company_name', company);
+    formData.append('job_location', location);
+    formData.append('position', position);
+    formData.append('description', role);
+    formData.append('experience', experience);
+    formData.append('salary', salary);
+    if (logo) {
+      formData.append('company_logo', logo);
+    }
 
     try {
-      const response = await axios.post("http://localhost:5000/createJob/", jobPost, {
+      const response = await axios.post("http://localhost:5000/createJob/", formData, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }
       });
-      console.log('Response:', response); // Debug log
+      
+      console.log('Response:', response);
       if (response.status === 200 || response.status === 201) {
         window.alert("Job posted successfully!");
         navigate('/jobs');
       }
     } catch (error) {
-      console.error("Full error details:", error.response || error); // Detailed error log
+      console.error("Full error details:", error.response || error);
       window.alert(`Failed to post job: ${error.response?.data?.message || error.message}`);
     }
   };

@@ -6,10 +6,10 @@
     position: relative;
     display: flex;
     align-items: center;
-    margin: 15px 0;
+    margin: 0px;
 }
 .search-box{
-  margin: 25px 10px 0px 5px;
+  margin: 0px 10px 0px 5px;
   padding:5px;
   font-size: 19px;
 }
@@ -32,16 +32,17 @@
   box-shadow: 0 0 0 2px rgba(25, 69, 245, 0.1);
 }
 .job-category{
-  margin-top: 39px;
+  margin-top: 20px;
   font-size: 20px;
   background-color: #fff;
-  padding: 20px;
+  padding: 15px;
   border-radius: 20px;
   box-shadow: #091e5a;
 }
 .job-category>ul{
   list-style: none;
   padding: 8px;
+  margin-top: 5px;
   cursor: pointer;
 }
 .job-category ul >li{

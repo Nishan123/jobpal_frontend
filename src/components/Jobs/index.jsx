@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../Navbar";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import "./index.css";
-import Job from "./../../Assets/jobs.json";
+import axios from "axios";
 import Filter from "../Filter";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const experience = [
   { min: 0, max: 1 },
@@ -14,37 +16,67 @@ const experience = [
 ];
 
 const Jobs = () => {
-  // Get saved jobs from localStorage
+  const [searchParams] = useSearchParams();
   const savedJobs = JSON.parse(localStorage.getItem("savedJobs")) || [];
-  
-  // Initialize state with both saved and default jobs
   const [filteredJobs, setFilteredJobs] = useState([]);
-  const [searchterm, setSearchTerm] = useState("");
+  const [allJobs, setAllJobs] = useState([]);
+  const [searchterm, setSearchTerm] = useState(searchParams.get('search') || "");
   const [active, setActive] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [imageErrors, setImageErrors] = useState({});
 
-  // Use useEffect to initialize jobs data
   useEffect(() => {
-    setFilteredJobs([...savedJobs, ...Job]);
-  }, []);
+    const fetchJobs = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/jobs");
+        setAllJobs(response.data);
+        const initialSearchTerm = searchParams.get('search');
+        if (initialSearchTerm) {
+          const filteredData = response.data.filter((item) => {
+            if (item) {
+              return Object.values(item)
+                .join("")
+                .toLowerCase()
+                .includes(initialSearchTerm.toLowerCase());
+            }
+            return false;
+          });
+          setFilteredJobs(filteredData);
+        } else {
+          setFilteredJobs(response.data);
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching jobs:", err);
+        setError("Failed to load jobs");
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, [searchParams]);
 
   function handleJobFilter(event) {
     const value = event.target.innerText;
     event.preventDefault();
     setFilteredJobs(
-      Job.filter((job) => job.role === value)
+      allJobs.filter((job) => job.position.toLowerCase() === value.toLowerCase())
     );
   }
 
   function saveClick(jobData) {
     const savedJobs = JSON.parse(localStorage.getItem("savedJobs")) || [];
-    const isJobSaved = savedJobs.find(job => job.id === jobData.id);
+    const isJobSaved = savedJobs.find(job => job.job_id === jobData.job_id);
     
     if (!isJobSaved) {
       const updatedSavedJobs = [...savedJobs, jobData];
       localStorage.setItem("savedJobs", JSON.stringify(updatedSavedJobs));
+      toast.success('Job saved successfully!');
     } else {
-      const filteredJobs = savedJobs.filter(job => job.id !== jobData.id);
+      const filteredJobs = savedJobs.filter(job => job.job_id !== jobData.job_id);
       localStorage.setItem("savedJobs", JSON.stringify(filteredJobs));
+      toast.info('Job removed from saved jobs');
     }
     setActive(!active);
   }
@@ -52,20 +84,19 @@ const Jobs = () => {
   const searchEvent = (event) => {
     const data = event.target.value;
     setSearchTerm(data);
-    if (searchterm !== "" || searchterm.length > 2) {
-      const filterData = Job.filter((item) => {
+    if (data !== "" && data.length > 2) {
+      const filterData = allJobs.filter((item) => {
         if (item) {
           return Object.values(item)
             .join("")
             .toLowerCase()
-            .includes(searchterm.toLowerCase());
-        } else {
-          return 0;
+            .includes(data.toLowerCase());
         }
+        return false;
       });
       setFilteredJobs(filterData);
     } else {
-      setFilteredJobs(Job);
+      setFilteredJobs(allJobs);
     }
   };
 
@@ -73,21 +104,44 @@ const Jobs = () => {
     let filters = [];
     checkedState.forEach((item, index) => {
       if (item === true) {
-        const filterS = Job.filter((job) => {
+        const filterS = allJobs.filter((job) => {
+          const expYears = parseInt(job.experience);
           return (
-            job.experience >= experience[index].min &&
-            job.experience <= experience[index].max
+            expYears >= experience[index].min &&
+            expYears <= experience[index].max
           );
         });
         filters = [...filters, ...filterS];
       }
-      setFilteredJobs(filters);
     });
+    if (filters.length > 0) {
+      setFilteredJobs(filters);
+    }
   }
+
+  const getImageUrl = (logoUrl) => {
+    if (!logoUrl) {
+      console.log('No logo URL provided, using default');
+      return 'http://localhost:5000/images/default-company-logo.png';
+    }
+
+    if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+      console.log('Using full URL:', logoUrl);
+      return logoUrl;
+    }
+
+    const pathName = logoUrl.startsWith('/') ? logoUrl : `/${logoUrl}`;
+    console.log('Using backend URL:', `http://localhost:5000${pathName}`);
+    return `http://localhost:5000${pathName}`;
+  };
+
+  if (loading) return <div>Loading jobs...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <>
       <Navbar />
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="jobs-for-you">
         <div className="job-background">
           <div className="title">
@@ -105,54 +159,71 @@ const Jobs = () => {
           </div>
           <div className="job-page">
             {filteredJobs.length > 0 ? (
-              filteredJobs.map(
-                ({ id, logo, company, position, location, posted, role }) => {
-                  const jobData = { id, logo, company, position, location, posted };
-                  const isJobSaved = savedJobs.some(job => job.id === id);
+              filteredJobs.map((job) => {
+                const jobData = {
+                  job_id: job.job_id,
+                  company_logo: job.company_logo,
+                  company_name: job.company_name,
+                  position: job.position,
+                  job_location: job.job_location,
+                  posted: job.createdAt
+                };
+                const isJobSaved = savedJobs.some(saved => saved.job_id === job.job_id);
 
-                  return (
-                    <div className="job-list" key={id}>
-                      <div className="job-card">
-                        <div className="job-name">
-                          <img
-                            src={
-                              logo.length > 20
-                                ? logo
-                                : require(`../../Assets/images/${logo}`)
+                return (
+                  <div className="job-list" key={job.job_id}>
+                    <div className="job-card">
+                      <div className="job-name">
+                        <img
+                          src={getImageUrl(job.company_logo)}
+                          alt={`${job.company_name} logo`}
+                          className="job-profile"
+                          onError={(e) => {
+                            if (!imageErrors[job.job_id]) {
+                              setImageErrors(prev => ({
+                                ...prev,
+                                [job.job_id]: true
+                              }));
+                              e.target.src = 'http://localhost:5000/images/default-company-logo.png';
                             }
-                            alt="logo"
-                            className="job-profile"
-                          />
-                          <div className="job-detail">
-                            <h4>{company}</h4>
-                            <h3>{position}</h3>
-                            <div className="category">
-                              <p>{location}</p>
-                              <p>{role}</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="job-button">
-                          <div className="job-posting">
-                            <Link to="/apply-jobs">Apply Now</Link>
-                          </div>
-                          <div className="save-button">
-                            <Link
-                              to="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                saveClick(jobData);
-                              }}
-                            >
-                              {isJobSaved ? <AiFillHeart /> : <AiOutlineHeart />}
-                            </Link>
+                          }}
+                          style={{ 
+                            maxWidth: '100px',
+                            height: '100px',
+                            objectFit: 'cover',
+                            display: 'block'
+                          }}
+                        />
+                        <div className="job-detail">
+                          <h4>{job.company_name}</h4>
+                          <h3>{job.position}</h3>
+                          <div className="category">
+                            <p>{job.job_location}</p>
+                            <p>Experience: {job.experience}</p>
+                            <p>Salary: {job.salary}</p>
                           </div>
                         </div>
                       </div>
+                      <div className="job-button">
+                        <div className="job-posting">
+                          <Link to={`/apply-jobs/${job.job_id}`}>Apply Now</Link>
+                        </div>
+                        <div className="save-button">
+                          <Link
+                            to="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              saveClick(jobData);
+                            }}
+                          >
+                            {isJobSaved ? <AiFillHeart /> : <AiOutlineHeart />}
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                  );
-                }
-              )
+                  </div>
+                );
+              })
             ) : (
               <div className="no-jobs-message">No jobs found</div>
             )}

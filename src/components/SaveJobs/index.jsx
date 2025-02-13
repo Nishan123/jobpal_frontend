@@ -2,22 +2,31 @@ import React, { useState } from "react";
 import Navbar from "../Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SaveJobs = () => {
   const [refresh, setRefresh] = useState(false);
-  const savedJobs = localStorage.getItem("Job");
-  const jobs = savedJobs ? JSON.parse(savedJobs) : [];
-  const jobsArray = Array.isArray(jobs) ? jobs : [jobs];
+  const savedJobs = JSON.parse(localStorage.getItem("savedJobs")) || [];
 
-  const removeJob = (index) => {
-    const updatedJobs = jobsArray.filter((_, i) => i !== index);
-    localStorage.setItem("Job", JSON.stringify(updatedJobs));
-    setRefresh(!refresh); // Trigger re-render
+  const removeJob = (jobId) => {
+    const updatedJobs = savedJobs.filter(job => job.job_id !== jobId);
+    localStorage.setItem("savedJobs", JSON.stringify(updatedJobs));
+    toast.info('Job removed from saved jobs');
+    setRefresh(!refresh);
+  };
+
+  const getImageUrl = (logoUrl) => {
+    if (!logoUrl) {
+      return 'http://localhost:5000/images/default-company-logo.png';
+    }
+    return logoUrl;
   };
 
   return (
     <div>
       <Navbar />
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="jobs-for-you">
         <div className="job-background">
           <div className="title">
@@ -34,7 +43,7 @@ const SaveJobs = () => {
             width: '100%',
             padding: '20px'
           }}>
-            {jobsArray.length === 0 ? (
+            {savedJobs.length === 0 ? (
               <div className="no-jobs" style={{
                 textAlign: 'center',
                 marginTop: '40px'
@@ -43,8 +52,8 @@ const SaveJobs = () => {
                 <p>Your saved jobs will appear here</p>
               </div>
             ) : (
-              jobsArray.map(({ logo, company, position, location, role }, index) => (
-                <div className="job-list" key={index} style={{
+              savedJobs.map((job) => (
+                <div className="job-list" key={job.job_id} style={{
                   display: 'flex',
                   justifyContent: 'center',
                   marginBottom: '20px'
@@ -55,27 +64,35 @@ const SaveJobs = () => {
                   }}>
                     <div className="job-name">
                       <img
-                        src={require(`../../Assets/images/${logo}`)}
-                        alt="logo"
+                        src={getImageUrl(job.company_logo)}
+                        alt={`${job.company_name} logo`}
                         className="job-profile"
+                        style={{
+                          maxWidth: '100px',
+                          height: '100px',
+                          objectFit: 'cover'
+                        }}
+                        onError={(e) => {
+                          e.target.src = 'http://localhost:5000/images/default-company-logo.png';
+                        }}
                       />
                       <div className="job-detail">
-                        <h4>{company}</h4>
-                        <h3>{position}</h3>
+                        <h4>{job.company_name}</h4>
+                        <h3>{job.position}</h3>
                         <div className="category">
-                          <p>{location}</p>
-                          <p>{role}</p>
+                          <p>{job.job_location}</p>
+                          <p>Posted: {new Date(job.posted).toLocaleDateString()}</p>
                         </div>
                       </div>
                     </div>
                     <div className="job-posting">
                       <button 
-                        onClick={() => removeJob(index)}
+                        onClick={() => removeJob(job.job_id)}
                         style={{
                           background: 'none',
                           border: 'none',
                           cursor: 'pointer',
-                          color: '#ff4444'
+                          color: 'white'
                         }}
                       >
                         <FontAwesomeIcon icon={faTrash} />
