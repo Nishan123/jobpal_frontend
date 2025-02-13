@@ -29,6 +29,14 @@ function Signup() {
       });
 
       if (response.status === 200 || response.status === 201) {
+        // Store user data in localStorage
+        const userData = {
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          isLoggedIn: true
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
         window.alert("Signup Successful!");
         navigate("/home");
       }

@@ -1,0 +1,52 @@
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #f5f5f5;
+  padding-left: 10px;
+  padding-right: 14px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-radius: 34px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.user-profile:hover {
+  background-color: #eeeeee;
+}
+
+.user-info {
+  text-align: left;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.user-email {
+  color: #666;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #6b5df2;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.user-avatar:hover {
+  background-color: #5649d8;
+} 

@@ -52,10 +52,10 @@ form {
   background: #f3f3f3;
   padding: 2.5rem 0.625rem;
   border-radius: 0.25rem;
-  min-width: 76%;  /* changed from width: 100% to min-width: 76% */
+  min-width: 76%;
   margin: 0 auto;
   box-sizing: border-box;
-  display: inline-block;  /* added to allow form to expand with content */
+  display: inline-block;  
 }
 
 @media (min-width: 1000px) {

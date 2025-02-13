@@ -1,10 +1,19 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./index.css";
-
+import UserAvatar from "../UserAvatar";
 import { ReactComponent as LogoImage } from "../../Assets/images/jobpal_logo.svg";
 
 const Navbar = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
   return (
     <>
       <div className="main-page">
@@ -29,12 +38,22 @@ const Navbar = () => {
             </div>
 
             <div className="auth-buttons">
-              <Link to="/login" className="login-btn">
-                Login
-              </Link>
-              <Link to="/signup" className="signup-btn">
-                Sign Up
-              </Link>
+              {user ? (
+                <UserAvatar 
+                  firstName={user.first_name} 
+                  lastName={user.last_name}
+                  email={user.email}
+                />
+              ) : (
+                <>
+                  <Link to="/login" className="login-btn">
+                    Login
+                  </Link>
+                  <Link to="/signup" className="signup-btn">
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </nav>

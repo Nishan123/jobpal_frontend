@@ -4,6 +4,8 @@ import Navbar from "../Navbar";
 import axios from "axios";
 import "./index.css";
 import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const PostJob = () => {
   const [company, setCompany] = useState("");
@@ -15,7 +17,7 @@ const PostJob = () => {
   const [location, setLocation] = useState("");
   const current_uid="user_id";
 
-const navigate=useNavigate();
+  const navigate=useNavigate();
 
   const handleImg = (e) => {
     const file = e.target.files[0];
@@ -46,19 +48,21 @@ const navigate=useNavigate();
       
       console.log('Response:', response);
       if (response.status === 200 || response.status === 201) {
-        window.alert("Job posted successfully!");
-        navigate('/jobs');
+        toast.success('Job posted successfully!');
+        setTimeout(() => {
+          navigate('/jobs');
+        }, 2000);
       }
     } catch (error) {
       console.error("Full error details:", error.response || error);
-      window.alert(`Failed to post job: ${error.response?.data?.message || error.message}`);
+      toast.error(`Failed to post job: ${error.response?.data?.message || error.message}`);
     }
   };
 
   return (
     <div>
       <Navbar />
-
+      <ToastContainer position="top-right" autoClose={2000} />
       <div className="job-background">
         <div className="title">
           <h2>Post a Job</h2>

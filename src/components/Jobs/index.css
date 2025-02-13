@@ -1,7 +1,6 @@
 .job-list {
   margin: 1%;
   padding: 0.7rem;
-  background-color: #f9f9f9;
 }
 .job-card {
   display: flex;
@@ -73,10 +72,10 @@
   gap: 22px;
 }
 .job-background {
-  background: #6b5df2;
-  height: 270px;
-  -webkit-clip-path: polygon(100% 0, 100% 81%, 50% 90%, 0 83%, 0 0);
-  clip-path: polygon(100% 0, 100% 81%, 50% 90%, 0 83%, 0 0);
+  background: linear-gradient(to bottom right, #f97862, #893dd0);
+  height: 210px;
+  margin-bottom: 20px;
+
 }
 .job-background .title {
   display: flex;
@@ -88,7 +87,7 @@
 .job-section{
   display: flex;
   flex-direction: row;
-  background: #F7F7FB;
+  background: #e7e7e7;
   max-width: 100%;
   gap: 20px;
 }
