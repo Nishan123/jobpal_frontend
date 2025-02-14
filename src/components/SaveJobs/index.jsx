@@ -85,11 +85,14 @@ const SaveJobs = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="job-posting">
+                    
                       <button 
+                        className="delete-button"
                         onClick={() => removeJob(job.job_id)}
                         style={{
-                          background: 'none',
+                          borderRadius: '20%',
+                          padding: '10px 20px',
+                          backgroundColor: 'red',
                           border: 'none',
                           cursor: 'pointer',
                           color: 'white'
@@ -99,7 +102,7 @@ const SaveJobs = () => {
                       </button>
                     </div>
                   </div>
-                </div>
+               
               ))
             )}
           </div>

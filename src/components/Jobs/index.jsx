@@ -27,19 +27,31 @@ const Jobs = () => {
   const [imageErrors, setImageErrors] = useState({});
   const [showMyJobs, setShowMyJobs] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [filters, setFilters] = useState({
+    search: searchParams.get('search') || "",
+    experience: [],
+    salary: []
+  });
 
   useEffect(() => {
     // Get current user ID from localStorage
     const userData = localStorage.getItem('user');
+    console.log('User data from localStorage:', userData);
+    
     if (userData) {
       const user = JSON.parse(userData);
+      console.log('Parsed user data:', user);
+      
       if (user.token) {
         try {
           const tokenData = JSON.parse(atob(user.token.split('.')[1]));
-          setCurrentUserId(tokenData.id);
+          console.log('Decoded token data:', tokenData);
+          setCurrentUserId(tokenData.id.toString());
         } catch (error) {
           console.error('Error parsing token:', error);
         }
+      } else if (user.id) {
+        setCurrentUserId(user.id.toString());
       }
     }
   }, []);
@@ -49,25 +61,19 @@ const Jobs = () => {
       try {
         const response = await axios.get("http://localhost:5000/jobs");
         setAllJobs(response.data);
-        const initialSearchTerm = searchParams.get('search');
         let jobsToShow = response.data;
 
-        // Filter by search term if exists
-        if (initialSearchTerm) {
-          jobsToShow = response.data.filter((item) => {
-            if (item) {
-              return Object.values(item)
-                .join("")
-                .toLowerCase()
-                .includes(initialSearchTerm.toLowerCase());
-            }
-            return false;
-          });
-        }
+        // Apply all active filters
+        jobsToShow = applyFilters(jobsToShow, filters);
 
         // Filter by current user if switch is on
         if (showMyJobs && currentUserId) {
-          jobsToShow = jobsToShow.filter(job => job.posted_by === currentUserId.toString());
+          console.log('Filtering for user:', currentUserId);
+          jobsToShow = jobsToShow.filter(job => {
+            const jobPosterId = job.posted_by ? job.posted_by.toString() : null;
+            console.log(`Comparing job ${job.job_id}: posted_by=${jobPosterId} with currentUserId=${currentUserId}`);
+            return jobPosterId === currentUserId;
+          });
         }
 
         setFilteredJobs(jobsToShow);
@@ -80,7 +86,46 @@ const Jobs = () => {
     };
 
     fetchJobs();
-  }, [searchParams, showMyJobs, currentUserId]);
+  }, [searchParams, showMyJobs, currentUserId, filters]);
+
+  const applyFilters = (jobs, currentFilters) => {
+    let filteredResults = [...jobs];
+
+    // Apply search filter
+    if (currentFilters.search) {
+      filteredResults = filteredResults.filter((item) => {
+        if (item) {
+          return Object.values(item)
+            .join("")
+            .toLowerCase()
+            .includes(currentFilters.search.toLowerCase());
+        }
+        return false;
+      });
+    }
+
+    // Apply experience filter
+    if (currentFilters.experience.length > 0) {
+      filteredResults = filteredResults.filter((job) => {
+        const expYears = parseInt(job.experience);
+        return currentFilters.experience.some(
+          range => expYears >= range.min && expYears <= range.max
+        );
+      });
+    }
+
+    // Apply salary filter
+    if (currentFilters.salary.length > 0) {
+      filteredResults = filteredResults.filter((job) => {
+        const jobSalary = parseInt(job.salary.replace(/[^0-9]/g, ''));
+        return currentFilters.salary.some(
+          range => jobSalary >= range.min && (range.max === Infinity || jobSalary <= range.max)
+        );
+      });
+    }
+
+    return filteredResults;
+  };
 
   // Add toggle handler
   const handleToggleMyJobs = () => {
@@ -89,22 +134,31 @@ const Jobs = () => {
       return;
     }
     setShowMyJobs(!showMyJobs);
-    if (!showMyJobs) {
-      // Turning the switch on - filter for user's jobs
-      const userJobs = allJobs.filter(job => job.posted_by === currentUserId.toString());
-      setFilteredJobs(userJobs);
-    } else {
-      // Turning the switch off - show all jobs
-      setFilteredJobs(allJobs);
-    }
+    
   };
 
   function handleJobFilter(event) {
-    const value = event.target.innerText;
-    event.preventDefault();
-    setFilteredJobs(
-      allJobs.filter((job) => job.position.toLowerCase() === value.toLowerCase())
-    );
+    if (event.target.name === 'salary') {
+      const selectedRanges = [];
+      const salaryRanges = [
+        { min: 0, max: 30000 },
+        { min: 30000, max: 50000 },
+        { min: 50000, max: 80000 },
+        { min: 80000, max: 100000 },
+        { min: 100000, max: Infinity }
+      ];
+      
+      event.target.checkedRanges.forEach((isChecked, index) => {
+        if (isChecked) {
+          selectedRanges.push(salaryRanges[index]);
+        }
+      });
+
+      setFilters(prev => ({
+        ...prev,
+        salary: selectedRanges
+      }));
+    }
   }
 
   function saveClick(jobData) {
@@ -126,39 +180,24 @@ const Jobs = () => {
   const searchEvent = (event) => {
     const data = event.target.value;
     setSearchTerm(data);
-    if (data !== "" && data.length > 2) {
-      const filterData = allJobs.filter((item) => {
-        if (item) {
-          return Object.values(item)
-            .join("")
-            .toLowerCase()
-            .includes(data.toLowerCase());
-        }
-        return false;
-      });
-      setFilteredJobs(filterData);
-    } else {
-      setFilteredJobs(allJobs);
-    }
+    setFilters(prev => ({
+      ...prev,
+      search: data
+    }));
   };
 
   function handleExperienceFilter(checkedState) {
-    let filters = [];
-    checkedState.forEach((item, index) => {
-      if (item === true) {
-        const filterS = allJobs.filter((job) => {
-          const expYears = parseInt(job.experience);
-          return (
-            expYears >= experience[index].min &&
-            expYears <= experience[index].max
-          );
-        });
-        filters = [...filters, ...filterS];
+    const selectedRanges = [];
+    checkedState.forEach((isChecked, index) => {
+      if (isChecked) {
+        selectedRanges.push(experience[index]);
       }
     });
-    if (filters.length > 0) {
-      setFilteredJobs(filters);
-    }
+
+    setFilters(prev => ({
+      ...prev,
+      experience: selectedRanges
+    }));
   }
 
   const getImageUrl = (logoUrl) => {
@@ -178,37 +217,39 @@ const Jobs = () => {
   };
 
   const handleDeleteJob = async (jobId) => {
-    if (window.confirm('Are you sure you want to delete this job post? This action cannot be undone.')) {
+    if (window.confirm('Are you sure you want to delete this job post?')) {
       try {
         const userData = localStorage.getItem('user');
         if (!userData) {
-          toast.error("Please login to delete your job post");
+          toast.error("Please login to delete jobs");
           return;
         }
 
         const user = JSON.parse(userData);
-        if (!user.token) {
-          toast.error("Please login to delete your job post");
-          return;
-        }
+        console.log('Delete attempt:', {
+          jobId,
+          userId: user.id,
+          tokenExists: !!user.token
+        });
 
-        await axios.delete(`http://localhost:5000/jobs/${jobId}`, {
+        const response = await axios.delete(`http://localhost:5000/jobs/${jobId}`, {
           headers: {
             'Authorization': `Bearer ${user.token}`
           }
         });
 
-        // Remove the deleted job from both states
-        const updatedJobs = allJobs.filter(job => job.job_id !== jobId);
-        const updatedFilteredJobs = filteredJobs.filter(job => job.job_id !== jobId);
-        
-        setAllJobs(updatedJobs);
-        setFilteredJobs(updatedFilteredJobs);
-        
-        toast.success("Job post deleted successfully");
+        if (response.data.message === "Job deleted") {
+          setAllJobs(prev => prev.filter(job => job.job_id !== jobId));
+          setFilteredJobs(prev => prev.filter(job => job.job_id !== jobId));
+          toast.success("Job deleted successfully");
+        }
       } catch (error) {
-        console.error("Error deleting job:", error);
-        toast.error("Failed to delete job post");
+        console.error("Error deleting job:", error.response?.data || error);
+        const errorMessage = error.response?.data?.error || "Failed to delete job";
+        if (error.response?.data?.debug) {
+          console.log('Debug info:', error.response.data.debug);
+        }
+        toast.error(errorMessage);
       }
     }
   };
@@ -258,7 +299,21 @@ const Jobs = () => {
                   posted: job.createdAt
                 };
                 const isJobSaved = savedJobs.some(saved => saved.job_id === job.job_id);
-                const isOwnJob = currentUserId && job.posted_by === currentUserId.toString();
+                
+                // Convert both IDs to strings and ensure they exist
+                const jobPosterId = job.posted_by ? job.posted_by.toString() : null;
+                const userIdString = currentUserId ? currentUserId.toString() : null;
+                
+                // Debug logs
+                console.log('Job ownership comparison:', {
+                  jobId: job.job_id,
+                  jobPosterId,
+                  userIdString,
+                  jobPostedBy: job.posted_by,
+                  currentUserId
+                });
+                
+                const isOwnJob = jobPosterId && userIdString && jobPosterId === userIdString;
 
                 return (
                   <div className="job-list" key={job.job_id}>
@@ -301,7 +356,7 @@ const Jobs = () => {
                               onClick={() => handleDeleteJob(job.job_id)}
                               className="delete-link"
                             >
-                              Delete My Post
+                              Delete Job
                             </button>
                           </div>
                         ) : (
