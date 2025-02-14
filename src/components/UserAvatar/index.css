@@ -1,3 +1,7 @@
+.user-profile-link {
+  text-decoration: none;
+}
+
 .user-profile {
   display: flex;
   align-items: center;

@@ -14,6 +14,9 @@ const Navbar = () => {
     }
   }, []);
 
+  // Show auth buttons if no user or user is guest
+  const showAuthButtons = !user || user.isGuest;
+
   return (
     <>
       <div className="main-page">
@@ -38,13 +41,7 @@ const Navbar = () => {
             </div>
 
             <div className="auth-buttons">
-              {user ? (
-                <UserAvatar 
-                  firstName={user.first_name} 
-                  lastName={user.last_name}
-                  email={user.email}
-                />
-              ) : (
+              {showAuthButtons ? (
                 <>
                   <Link to="/login" className="login-btn">
                     Login
@@ -53,6 +50,12 @@ const Navbar = () => {
                     Sign Up
                   </Link>
                 </>
+              ) : (
+                <UserAvatar 
+                  firstName={user.first_name} 
+                  lastName={user.last_name}
+                  email={user.email}
+                />
               )}
             </div>
           </div>

@@ -4,6 +4,7 @@
   "homepage": "https://Himanshur25.github.io/job-portal",
   "private": true,
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@sanity/client": "^4.0.1",

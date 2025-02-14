@@ -1,5 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
 import axios from "axios";
 import jobSearching from "../../Assets/images/job_searching.png";
@@ -13,14 +15,43 @@ function Signup() {
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
 
+  const handleGuestLogin = () => {
+    // Store minimal guest user data
+    const guestData = {
+      first_name: "Guest",
+      last_name: "User",
+      email: "",
+      isLoggedIn: false,
+      isGuest: true,
+    };
+    localStorage.setItem("user", JSON.stringify(guestData));
+    toast.info("Continuing as guest");
+    setTimeout(() => {
+      navigate("/home");
+    }, 1000);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic validation
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     const user = {
       first_name: firstName,
       last_name: lastName,
       email: email,
       password: password,
     };
+
     try {
       const response = await axios.post("http://localhost:5000/signup", user, {
         headers: {
@@ -34,19 +65,24 @@ function Signup() {
           first_name: firstName,
           last_name: lastName,
           email: email,
-          isLoggedIn: true
+          isLoggedIn: true,
         };
-        localStorage.setItem('user', JSON.stringify(userData));
-        window.alert("Signup Successful!");
-        navigate("/home");
+        localStorage.setItem("user", JSON.stringify(userData));
+        toast.success("Signup Successful!");
+        setTimeout(() => {
+          navigate("/home");
+        }, 1000);
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message;
-      window.alert(errorMessage);
+      const errorMessage =
+        error.response?.data?.error || "Signup failed. Please try again.";
+      toast.error(errorMessage);
     }
   };
+
   return (
     <div className="signup-page">
+      <ToastContainer position="top-right" autoClose={3000} />
       <nav className="signup-nav">
         <Link to="/">
           <LogoImage className="logo-img" />
@@ -109,9 +145,11 @@ function Signup() {
             <img
               src={jobSearching}
               alt="Job search illustration"
-              className="job-search"
+              className="job-search-image"
             />
-            <button className="continue-as-guest">Continue as guest</button>
+            <button className="continue-as-guest" onClick={handleGuestLogin}>
+              Continue as guest
+            </button>
           </div>
         </div>
       </div>

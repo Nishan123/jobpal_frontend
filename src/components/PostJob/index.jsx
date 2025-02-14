@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../Navbar";
 import axios from "axios";
 import "./index.css";
@@ -8,6 +8,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const PostJob = () => {
+  const navigate = useNavigate();
   const [company, setCompany] = useState("");
   const [logo, setLogo] = useState("");
   const [position, setPosition] = useState("");
@@ -15,9 +16,46 @@ const PostJob = () => {
   const [experience, setExperience] = useState("");
   const [role, setRole] = useState("");
   const [location, setLocation] = useState("");
-  const current_uid="user_id";
+  const [userId, setUserId] = useState(null);
+  const [userToken, setUserToken] = useState(null);
 
-  const navigate=useNavigate();
+  useEffect(() => {
+    const checkAuth = () => {
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        toast.error("Please login first to post a job");
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+        return false;
+      }
+
+      const user = JSON.parse(userData);
+      if (!user.token || !user.isLoggedIn) {
+        toast.error("Please login first to post a job");
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+        return false;
+      }
+
+      try {
+        const tokenData = JSON.parse(atob(user.token.split('.')[1]));
+        setUserId(tokenData.id);
+        setUserToken(user.token);
+        return true;
+      } catch (error) {
+        console.error('Error parsing token:', error);
+        toast.error("Authentication error. Please login again");
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+        return false;
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   const handleImg = (e) => {
     const file = e.target.files[0];
@@ -26,9 +64,23 @@ const PostJob = () => {
 
   const handleSubmitButton = async (e) => {
     e.preventDefault();
+
+    // Check required fields
+    if (!company || !position || !location || !role || !experience || !salary) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!userId || !userToken) {
+      toast.error("Please login first to post a job");
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+      return;
+    }
     
     const formData = new FormData();
-    formData.append('posted_by', current_uid);
+    formData.append('posted_by', userId.toString());
     formData.append('company_name', company);
     formData.append('job_location', location);
     formData.append('position', position);
@@ -42,11 +94,11 @@ const PostJob = () => {
     try {
       const response = await axios.post("http://localhost:5000/createJob/", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${userToken}`
         }
       });
       
-      console.log('Response:', response);
       if (response.status === 200 || response.status === 201) {
         toast.success('Job posted successfully!');
         setTimeout(() => {
@@ -54,6 +106,12 @@ const PostJob = () => {
         }, 2000);
       }
     } catch (error) {
+      if (error.response?.status === 401) {
+        toast.error("Your session has expired. Please login again.");
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
       console.error("Full error details:", error.response || error);
       toast.error(`Failed to post job: ${error.response?.data?.message || error.message}`);
     }

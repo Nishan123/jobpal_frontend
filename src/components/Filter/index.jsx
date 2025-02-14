@@ -10,6 +10,14 @@ const experience = [
   { min: 5, max: 10 },
 ];
 
+const salaryRanges = [
+  { label: "Below 30K", min: 0, max: 30000 },
+  { label: "30K-50K", min: 30000, max: 50000 },
+  { label: "50K-80K", min: 50000, max: 80000 },
+  { label: "80K-100K", min: 80000, max: 100000 },
+  { label: "Above 100K", min: 100000, max: Infinity }
+];
+
 const Filter = ({
   setFilteredJobs,
   handleJobFilter,
@@ -17,24 +25,30 @@ const Filter = ({
   searchEvent,
 }) => {
   const [searchParams] = useSearchParams();
-  const [checkedState, setCheckedState] = useState(
+  const [checkedExperience, setCheckedExperience] = useState(
     new Array(experience.length).fill(false)
   );
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [checkedSalary, setCheckedSalary] = useState(
+    new Array(salaryRanges.length).fill(false)
+  );
 
-  const handleOnChange = (position) => {
-    const updatedCheckedState = checkedState.map((item, index) =>
+  const handleExperienceChange = (position) => {
+    const updatedCheckedState = checkedExperience.map((item, index) =>
       index === position ? !item : item
     );
 
-    setCheckedState(updatedCheckedState);
+    setCheckedExperience(updatedCheckedState);
     handleExperienceFilter(updatedCheckedState);
   };
 
-  const handleCategoryClick = (event) => {
-    const value = event.target.innerText;
-    setSelectedCategory(value);
-    handleJobFilter(event);
+  const handleSalaryChange = (position) => {
+    const updatedCheckedState = checkedSalary.map((item, index) =>
+      index === position ? !item : item
+    );
+
+    setCheckedSalary(updatedCheckedState);
+    // Update this to handle salary filtering in your parent component
+    handleJobFilter({ target: { name: 'salary', checkedRanges: updatedCheckedState } });
   };
 
   return (
@@ -56,15 +70,16 @@ const Filter = ({
           </div>
           <div className="filter">
             <div className="job-category">
-              <h4>Categories</h4>
-              <ul>
-                {["Frontend", "Backend", "Devops", "Full Stack", "Digital Marketing"].map((category) => (
-                  <li 
-                    key={category}
-                    onClick={handleCategoryClick}
-                    className={selectedCategory === category ? 'selected' : ''}
-                  >
-                    {category}
+              <h4>Salary Range</h4>
+              <ul className="checkbox">
+                {salaryRanges.map((range, index) => (
+                  <li key={range.label}>
+                    <input
+                      type="checkbox"
+                      checked={checkedSalary[index]}
+                      onChange={() => handleSalaryChange(index)}
+                    />
+                    {range.label}
                   </li>
                 ))}
               </ul>
@@ -75,37 +90,33 @@ const Filter = ({
               <ul className="checkbox">
                 <li>
                   <input
-                    name="0-1"
                     type="checkbox"
-                    checked={checkedState[0]}
-                    onChange={() => handleOnChange(0)}
+                    checked={checkedExperience[0]}
+                    onChange={() => handleExperienceChange(0)}
                   />
                   0-1 year
                 </li>
                 <li>
                   <input
-                    name="2-3"
                     type="checkbox"
-                    checked={checkedState[1]}
-                    onChange={() => handleOnChange(1)}
+                    checked={checkedExperience[1]}
+                    onChange={() => handleExperienceChange(1)}
                   />
                   2-3 year
                 </li>
                 <li>
                   <input
-                    name="4-5"
                     type="checkbox"
-                    checked={checkedState[2]}
-                    onChange={() => handleOnChange(2)}
+                    checked={checkedExperience[2]}
+                    onChange={() => handleExperienceChange(2)}
                   />
                   4-5 year
                 </li>
                 <li>
                   <input
-                    name="4-5"
                     type="checkbox"
-                    checked={checkedState[3]}
-                    onChange={() => handleOnChange(3)}
+                    checked={checkedExperience[3]}
+                    onChange={() => handleExperienceChange(3)}
                   />
                   5+ year
                 </li>

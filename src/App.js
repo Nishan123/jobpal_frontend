@@ -9,6 +9,7 @@ import ErrorPage from './components/ErrorPage';
 import ApplyJobs from './components/ApplyJobs';
 import Signup from './components/Signup';
 import Login from './components/Login';
+import Profile from './components/Profile';
 
 function App() {
   return (
@@ -19,11 +20,12 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/post-job" element={<PostJob />} />
-          <Route path="/apply-jobs" element={<ApplyJobs />} />
+          <Route path="/apply-jobs/:jobId" element={<ApplyJobs />} />
           <Route path="/saved-job" element={<SaveJobs />} />
           <Route path="/discussion" element={<Discussion />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </BrowserRouter>

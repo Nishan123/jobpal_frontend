@@ -25,6 +25,24 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
+  const [showMyJobs, setShowMyJobs] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  useEffect(() => {
+    // Get current user ID from localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user.token) {
+        try {
+          const tokenData = JSON.parse(atob(user.token.split('.')[1]));
+          setCurrentUserId(tokenData.id);
+        } catch (error) {
+          console.error('Error parsing token:', error);
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -32,8 +50,11 @@ const Jobs = () => {
         const response = await axios.get("http://localhost:5000/jobs");
         setAllJobs(response.data);
         const initialSearchTerm = searchParams.get('search');
+        let jobsToShow = response.data;
+
+        // Filter by search term if exists
         if (initialSearchTerm) {
-          const filteredData = response.data.filter((item) => {
+          jobsToShow = response.data.filter((item) => {
             if (item) {
               return Object.values(item)
                 .join("")
@@ -42,10 +63,14 @@ const Jobs = () => {
             }
             return false;
           });
-          setFilteredJobs(filteredData);
-        } else {
-          setFilteredJobs(response.data);
         }
+
+        // Filter by current user if switch is on
+        if (showMyJobs && currentUserId) {
+          jobsToShow = jobsToShow.filter(job => job.posted_by === currentUserId.toString());
+        }
+
+        setFilteredJobs(jobsToShow);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching jobs:", err);
@@ -55,7 +80,24 @@ const Jobs = () => {
     };
 
     fetchJobs();
-  }, [searchParams]);
+  }, [searchParams, showMyJobs, currentUserId]);
+
+  // Add toggle handler
+  const handleToggleMyJobs = () => {
+    if (!currentUserId) {
+      toast.error("Please login to filter your posted jobs");
+      return;
+    }
+    setShowMyJobs(!showMyJobs);
+    if (!showMyJobs) {
+      // Turning the switch on - filter for user's jobs
+      const userJobs = allJobs.filter(job => job.posted_by === currentUserId.toString());
+      setFilteredJobs(userJobs);
+    } else {
+      // Turning the switch off - show all jobs
+      setFilteredJobs(allJobs);
+    }
+  };
 
   function handleJobFilter(event) {
     const value = event.target.innerText;
@@ -135,6 +177,42 @@ const Jobs = () => {
     return `http://localhost:5000${pathName}`;
   };
 
+  const handleDeleteJob = async (jobId) => {
+    if (window.confirm('Are you sure you want to delete this job post? This action cannot be undone.')) {
+      try {
+        const userData = localStorage.getItem('user');
+        if (!userData) {
+          toast.error("Please login to delete your job post");
+          return;
+        }
+
+        const user = JSON.parse(userData);
+        if (!user.token) {
+          toast.error("Please login to delete your job post");
+          return;
+        }
+
+        await axios.delete(`http://localhost:5000/jobs/${jobId}`, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
+
+        // Remove the deleted job from both states
+        const updatedJobs = allJobs.filter(job => job.job_id !== jobId);
+        const updatedFilteredJobs = filteredJobs.filter(job => job.job_id !== jobId);
+        
+        setAllJobs(updatedJobs);
+        setFilteredJobs(updatedFilteredJobs);
+        
+        toast.success("Job post deleted successfully");
+      } catch (error) {
+        console.error("Error deleting job:", error);
+        toast.error("Failed to delete job post");
+      }
+    }
+  };
+
   if (loading) return <div>Loading jobs...</div>;
   if (error) return <div>{error}</div>;
 
@@ -150,6 +228,17 @@ const Jobs = () => {
         </div>
         <div className="job-section">
           <div className="filter-section">
+            <div className="my-jobs-switch">
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={showMyJobs}
+                  onChange={handleToggleMyJobs}
+                />
+                <span className="slider round"></span>
+              </label>
+              <span className="switch-label">Show My Posted Jobs</span>
+            </div>
             <Filter
               setFilteredJobs={setFilteredJobs}
               handleJobFilter={handleJobFilter}
@@ -169,6 +258,7 @@ const Jobs = () => {
                   posted: job.createdAt
                 };
                 const isJobSaved = savedJobs.some(saved => saved.job_id === job.job_id);
+                const isOwnJob = currentUserId && job.posted_by === currentUserId.toString();
 
                 return (
                   <div className="job-list" key={job.job_id}>
@@ -205,9 +295,22 @@ const Jobs = () => {
                         </div>
                       </div>
                       <div className="job-button">
-                        <div className="job-posting">
-                          <Link to={`/apply-jobs/${job.job_id}`}>Apply Now</Link>
-                        </div>
+                        {isOwnJob ? (
+                          <div className="job-posting delete-button">
+                            <button
+                              onClick={() => handleDeleteJob(job.job_id)}
+                              className="delete-link"
+                            >
+                              Delete My Post
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="job-posting">
+                            <Link to={`/apply-jobs/${job.job_id}`} className="apply-link">
+                              Apply Now
+                            </Link>
+                          </div>
+                        )}
                         <div className="save-button">
                           <Link
                             to="#"
@@ -225,7 +328,9 @@ const Jobs = () => {
                 );
               })
             ) : (
-              <div className="no-jobs-message">No jobs found</div>
+              <div className="no-jobs-message">
+                {showMyJobs ? "You haven't posted any jobs yet" : "No jobs found"}
+              </div>
             )}
           </div>
         </div>
