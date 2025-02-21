@@ -10,6 +10,7 @@ import ApplyJobs from './components/ApplyJobs';
 import Signup from './components/Signup';
 import Login from './components/Login';
 import Profile from './components/Profile';
+import AppliedJobs from './components/AppliedJobs';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/post-job" element={<PostJob />} />
           <Route path="/apply-jobs/:jobId" element={<ApplyJobs />} />
           <Route path="/saved-job" element={<SaveJobs />} />
+          <Route path="/applied-jobs" element={<AppliedJobs />} />
           <Route path="/discussion" element={<Discussion />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />

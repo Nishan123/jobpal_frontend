@@ -37,6 +37,11 @@ const Navbar = () => {
                 <li>
                   <Link to="/saved-job">Saved Job</Link>
                 </li>
+                {user && !user.isGuest && (
+                  <li>
+                    <Link to="/applied-jobs">Applied Jobs</Link>
+                  </li>
+                )}
               </ul>
             </div>
 
